@@ -40,7 +40,7 @@ Here are some ideas to get you started:
 
 ###
 
-<p align="left">I'm a gadget lover and tech junkie from India. I love to learn new things and constantly seek knowledge. <br><i>I'm a curious cat</i> <br><br>- 🔭 I’m working as a Devops engineer and handle a Java Liferay Application<br>- 😄 Pronouns: She/Her/Female<br>- 📚 I'm currently learning React JS, Python<br>- 💬 In my free time I sometimes code, watch movies, read book/manga and play video games<br>- ⚡ Fun fact: I have taught myself to read Korean in a month</p>
+<p align="left">I'm a gadget lover and tech junkie from India. I love to learn new things and constantly seek knowledge. <br><i>I'm a curious cat</i> <br><br>- 🔭 I’m working as a Devops engineer and handle a Java Liferay Application<br>- 😄 Pronouns: She/Her/Female<br>- 📚 I'm currently learning Python. Primarily work on azure, currently exploring AWS for upskilling <br>- 💬 In my free time I sometimes code, watch movies, read books/manga or play video games<br>- ⚡ Fun fact: I have taught myself to read Korean in a month</p>
 
 ###
 
