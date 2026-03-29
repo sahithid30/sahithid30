@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sahithi — DevOps Engineer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&family=Noto+Serif:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:       #0e1016;
+      --panel-l:  #10131c;
+      --panel-r:  #0c0f18;
+      --border:   rgba(140,180,255,0.08);
+      --accent:   #7eb8d4;
+      --accent2:  #c9a96e;
+      --sakura:   #e8b4c8;
+      --text:     #d8e4f0;
+      --muted:    #6a7a8a;
+      --glow-b:   rgba(126,184,212,0.12);
+      --glow-g:   rgba(201,169,110,0.10);
+    }
+
+    html, body {
+      height: 100%; min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      overflow-x: hidden;
+    }
+
+    .bg-layer {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    }
+    .bg-layer::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 30%, rgba(126,184,212,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 70% at 85% 70%, rgba(201,169,110,0.05) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 40% at 50% 10%, rgba(232,180,200,0.04) 0%, transparent 50%);
+    }
+    .bg-layer canvas { position: absolute; inset: 0; }
+
+    .top-bar {
+      position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 100;
+      background: linear-gradient(90deg, transparent 0%, var(--sakura) 25%, var(--accent) 50%, var(--accent2) 75%, transparent 100%);
+      animation: barShimmer 5s ease-in-out infinite;
+    }
+    @keyframes barShimmer { 0%,100%{opacity:.4} 50%{opacity:1} }
+
+    .layout {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 500px 1fr;
+    }
+
+    /* ── LEFT ── */
+    .left-panel {
+      background: var(--panel-l);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 44px;
+      position: relative;
+      overflow: hidden;
+      animation: panelIn 1s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    @keyframes panelIn { from{opacity:0;transform:translateX(-30px)} to{opacity:1;transform:translateX(0)} }
+
+    .left-panel::before, .left-panel::after {
+      content: '';
+      position: absolute;
+      width: 100px; height: 100px;
+      border: 1px solid rgba(126,184,212,0.1);
+      pointer-events: none;
+    }
+    .left-panel::before { top: 20px; left: 20px; border-right: none; border-bottom: none; }
+    .left-panel::after  { bottom: 20px; right: 20px; border-left: none; border-top: none; }
+
+    .avatar-glow-field {
+      position: absolute;
+      width: 350px; height: 350px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(126,184,212,0.07) 0%, transparent 70%);
+      animation: breathe 4s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes breathe { 0%,100%{transform:scale(1);opacity:.6} 50%{transform:scale(1.08);opacity:1} }
+
+    .avatar-frame {
+      position: relative;
+      width: 260px; height: 260px;
+      margin-bottom: 32px;
+      flex-shrink: 0;
+    }
+
+    .avatar-ring-outer {
+      position: absolute; inset: -12px;
+      border-radius: 50%;
+      border: 1.5px solid transparent;
+      background: linear-gradient(var(--panel-l),var(--panel-l)) padding-box,
+                  conic-gradient(from 0deg, var(--sakura), var(--accent), var(--accent2), var(--sakura)) border-box;
+      animation: spin 10s linear infinite;
+    }
+    .avatar-ring-inner {
+      position: absolute; inset: -5px;
+      border-radius: 50%;
+      border: 1px solid rgba(126,184,212,0.12);
+    }
+    @keyframes spin { to{transform:rotate(360deg)} }
+
+    .avatar-circle {
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 0 60px rgba(126,184,212,0.15), 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .avatar-circle svg { width: 100%; height: 100%; display: block; }
+
+    .status {
+      position: absolute; bottom: 12px; right: 12px;
+      width: 16px; height: 16px;
+      background: #5de0b0;
+      border-radius: 50%;
+      border: 3px solid var(--panel-l);
+      z-index: 2;
+      animation: pulse-dot 2.5s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100%{box-shadow:0 0 0 0 rgba(93,224,176,0.5)}
+      50%{box-shadow:0 0 0 7px rgba(93,224,176,0)}
+    }
+
+    .left-text { text-align: center; width: 100%; }
+
+    .name-jp {
+      font-family: 'Noto Serif', serif;
+      letter-spacing: 0.35em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      animation: fadeUp 0.8s 0.4s both;
+    }
+
+    .name-main {
+      font-family: 'Noto Serif', serif;
+      font-size: 2.8rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      margin-bottom: 10px;
+      background: linear-gradient(150deg, #e8f4ff 0%, var(--accent) 60%, var(--sakura) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: fadeUp 0.8s 0.5s both;
+    }
+
+    .name-role {
+      font-size: 0.75rem;
+      font-weight: 300;
+      color: var(--muted);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      animation: fadeUp 0.8s 0.6s both;
+    }
+
+    .divider-fancy {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 24px;
+      animation: fadeUp 0.8s 0.65s both;
+    }
+    .divider-fancy::before, .divider-fancy::after {
+      content: '';
+      flex: 1; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(126,184,212,0.3));
+    }
+    .divider-fancy::after { transform: scaleX(-1); }
+    .divider-fancy span { font-size: 0.65rem; letter-spacing: 0.3em; color: rgba(126,184,212,0.4); }
+
+    .pills {
+      display: flex; flex-wrap: wrap; gap: 7px; justify-content: center;
+      animation: fadeUp 0.8s 0.7s both;
+    }
+    .pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 13px;
+      border-radius: 100px;
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+      font-weight: 400;
+      border: 1px solid;
+    }
+    .pill-blue  { background: rgba(126,184,212,0.08); border-color: rgba(126,184,212,0.22); color: var(--accent); }
+    .pill-gold  { background: rgba(201,169,110,0.08); border-color: rgba(201,169,110,0.22); color: var(--accent2); }
+    .pill-pink  { background: rgba(232,180,200,0.08); border-color: rgba(232,180,200,0.22); color: var(--sakura); }
+
+    @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── RIGHT ── */
+    .right-panel {
+      background: var(--panel-r);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 80px 68px;
+      gap: 38px;
+      animation: panelInR 1s 0.15s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    @keyframes panelInR { from{opacity:0;transform:translateX(30px)} to{opacity:1;transform:translateX(0)} }
+
+    .section-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1; height: 1px;
+      background: linear-gradient(90deg, rgba(126,184,212,0.25), transparent);
+    }
+
+    .bio-block { animation: fadeUp 0.8s 0.5s both; }
+
+    .bio-quote {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.65rem;
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.5;
+      color: rgba(216,228,240,0.88);
+      margin-bottom: 18px;
+      border-left: 2px solid var(--accent);
+      padding-left: 18px;
+    }
+
+    .bio-body {
+      font-size: 0.9rem;
+      font-weight: 300;
+      line-height: 1.9;
+      color: rgba(216,228,240,0.62);
+      letter-spacing: 0.012em;
+    }
+    .bio-body strong { color: var(--accent2); font-weight: 500; }
+    .bio-body em { color: var(--sakura); font-style: normal; }
+
+    .grid-section { animation: fadeUp 0.8s 0.65s both; }
+
+    .interest-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .interest-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 14px;
+      padding: 16px 18px;
+      transition: all 0.3s ease;
+      cursor: default;
+    }
+    .interest-card:hover {
+      background: rgba(126,184,212,0.05);
+      border-color: rgba(126,184,212,0.18);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+    .interest-card .ic-icon { font-size: 1.3rem; margin-bottom: 6px; display: block; }
+    .interest-card .ic-title {
+      font-size: 0.78rem; font-weight: 500;
+      color: var(--text); letter-spacing: 0.04em;
+      margin-bottom: 3px;
+    }
+    .interest-card .ic-sub {
+      font-size: 0.68rem; color: var(--muted); font-weight: 300; line-height: 1.5;
+    }
+
+    .stack-section { animation: fadeUp 0.8s 0.8s both; }
+
+    .stack-tags { display: flex; flex-wrap: wrap; gap: 7px; }
+    .stag {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 7px;
+      padding: 5px 12px;
+      font-size: 0.7rem;
+      color: rgba(216,228,240,0.48);
+      letter-spacing: 0.05em;
+      transition: all 0.25s ease;
+    }
+    .stag:hover {
+      background: rgba(201,169,110,0.08);
+      border-color: rgba(201,169,110,0.25);
+      color: var(--accent2);
+    }
+    .stag.exploring {
+      background: rgba(126,184,212,0.06);
+      border-color: rgba(126,184,212,0.2);
+      border-style: dashed;
+      color: var(--accent);
+      font-style: italic;
+    }
+
+    .right-footer {
+      font-size: 0.65rem;
+      color: rgba(106,122,138,0.38);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      animation: fadeUp 0.8s 0.95s both;
+    }
+    .right-footer span { color: rgba(126,184,212,0.4); }
+
+    .petals { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+    .petal {
+      position: absolute;
+      animation: petalFall linear infinite;
+      opacity: 0;
+    }
+    @keyframes petalFall {
+      0%   { transform: translateY(-20px) rotate(0deg); opacity: 0; }
+      5%   { opacity: 0.65; }
+      95%  { opacity: 0.25; }
+      100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-layer"><canvas id="stars"></canvas></div>
+<div class="top-bar"></div>
+<div class="petals" id="petals"></div>
+
+<div class="layout">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="avatar-glow-field"></div>
+
+    <div class="avatar-frame">
+      <div class="avatar-ring-outer"></div>
+      <div class="avatar-ring-inner"></div>
+      <div class="avatar-circle">
+
+        <svg viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stop-color="#1a2744"/>
+              <stop offset="55%"  stop-color="#2a3a62"/>
+              <stop offset="100%" stop-color="#364e78"/>
+            </linearGradient>
+            <filter id="soft">
+              <feGaussianBlur stdDeviation="3"/>
+            </filter>
+            <filter id="softFace">
+              <feGaussianBlur stdDeviation="0.8"/>
+            </filter>
+            <radialGradient id="skin" cx="42%" cy="30%" r="65%">
+              <stop offset="0%"   stop-color="#fdd9b5"/>
+              <stop offset="70%"  stop-color="#f8c49a"/>
+              <stop offset="100%" stop-color="#f0b080"/>
+            </radialGradient>
+            <radialGradient id="skinDark" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"  stop-color="#f0b080"/>
+              <stop offset="100%" stop-color="#e09860"/>
+            </radialGradient>
+            <linearGradient id="hair" x1="0.25" y1="0" x2="0.6" y2="1">
+              <stop offset="0%"  stop-color="#252525"/>
+              <stop offset="50%" stop-color="#181818"/>
+              <stop offset="100%" stop-color="#0d0d0d"/>
+            </linearGradient>
+            <linearGradient id="hairHL" x1="0.15" y1="0.1" x2="0.55" y2="0.5">
+              <stop offset="0%"  stop-color="rgba(100,140,210,0.4)"/>
+              <stop offset="100%" stop-color="rgba(100,140,210,0)"/>
+            </linearGradient>
+            <linearGradient id="hairHL2" x1="0.2" y1="0" x2="0.5" y2="0.6">
+              <stop offset="0%"  stop-color="rgba(180,200,240,0.25)"/>
+              <stop offset="100%" stop-color="rgba(180,200,240,0)"/>
+            </linearGradient>
+            <linearGradient id="outfit" x1="0" y1="0" x2="0.2" y2="1">
+              <stop offset="0%"   stop-color="#2c4878"/>
+              <stop offset="100%" stop-color="#1a3060"/>
+            </linearGradient>
+            <radialGradient id="moonG" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"   stop-color="rgba(210,230,255,0.5)"/>
+              <stop offset="60%"  stop-color="rgba(200,220,255,0.2)"/>
+              <stop offset="100%" stop-color="rgba(200,220,255,0)"/>
+            </radialGradient>
+            <radialGradient id="irisL" cx="38%" cy="35%" r="65%">
+              <stop offset="0%"  stop-color="#6a9ec8"/>
+              <stop offset="50%" stop-color="#3d7aaa"/>
+              <stop offset="100%" stop-color="#1e4a7a"/>
+            </radialGradient>
+            <radialGradient id="irisR" cx="38%" cy="35%" r="65%">
+              <stop offset="0%"  stop-color="#6a9ec8"/>
+              <stop offset="50%" stop-color="#3d7aaa"/>
+              <stop offset="100%" stop-color="#1e4a7a"/>
+            </radialGradient>
+          </defs>
+
+          <!-- SKY BG -->
+          <rect width="280" height="280" fill="url(#sky)"/>
+
+          <!-- stars -->
+          <circle cx="22"  cy="20"  r="1"   fill="white" opacity="0.7"/>
+          <circle cx="55"  cy="14"  r="0.8" fill="white" opacity="0.8"/>
+          <circle cx="88"  cy="28"  r="1.1" fill="white" opacity="0.55"/>
+          <circle cx="125" cy="12"  r="0.7" fill="white" opacity="0.75"/>
+          <circle cx="162" cy="20"  r="1.0" fill="white" opacity="0.6"/>
+          <circle cx="198" cy="10"  r="0.9" fill="white" opacity="0.65"/>
+          <circle cx="235" cy="25"  r="1.2" fill="white" opacity="0.58"/>
+          <circle cx="260" cy="15"  r="0.7" fill="white" opacity="0.7"/>
+          <circle cx="12"  cy="45"  r="0.8" fill="white" opacity="0.5"/>
+          <circle cx="205" cy="42"  r="0.9" fill="white" opacity="0.52"/>
+          <circle cx="248" cy="52"  r="0.7" fill="white" opacity="0.6"/>
+          <circle cx="72"  cy="50"  r="0.6" fill="white" opacity="0.45"/>
+          <circle cx="150" cy="38"  r="0.8" fill="white" opacity="0.5"/>
+
+          <!-- Moon -->
+          <circle cx="232" cy="42" r="28" fill="url(#moonG)"/>
+          <circle cx="232" cy="42" r="16" fill="rgba(230,242,255,0.88)"/>
+          <circle cx="226" cy="37" r="11" fill="rgba(210,228,252,0.82)"/>
+          <!-- moon surface hints -->
+          <circle cx="228" cy="45" r="3"  fill="rgba(180,200,240,0.2)"/>
+          <circle cx="237" cy="39" r="2"  fill="rgba(180,200,240,0.15)"/>
+
+          <!-- background hills -->
+          <ellipse cx="40"  cy="230" rx="100" ry="65" fill="#182e52" opacity="0.55"/>
+          <ellipse cx="220" cy="238" rx="115" ry="68" fill="#1b3358" opacity="0.5"/>
+          <ellipse cx="140" cy="222" rx="140" ry="58" fill="#1d3860" opacity="0.45"/>
+
+          <!-- foreground ground -->
+          <ellipse cx="140" cy="300" rx="200" ry="85" fill="#14284a"/>
+
+          <!-- clouds -->
+          <g filter="url(#soft)" opacity="0.3">
+            <ellipse cx="55"  cy="82" rx="58" ry="20" fill="#c8d8f5"/>
+            <ellipse cx="35"  cy="78" rx="32" ry="15" fill="#dce8ff"/>
+            <ellipse cx="75"  cy="80" rx="30" ry="13" fill="#dce8ff"/>
+          </g>
+          <g filter="url(#soft)" opacity="0.22">
+            <ellipse cx="215" cy="68" rx="52" ry="16" fill="#c8d8f5"/>
+            <ellipse cx="200" cy="65" rx="30" ry="13" fill="#dce8ff"/>
+          </g>
+
+          <!-- ===== CHARACTER ===== -->
+
+          <!-- Outfit shoulders/body -->
+          <path d="M72 270 Q84 238 106 224 Q120 216 140 213 Q160 216 174 224 Q196 238 208 270 Z"
+                fill="url(#outfit)"/>
+          <!-- collar v-neck detail -->
+          <path d="M128 213 Q140 228 152 213" stroke="#7eb8d4" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.6"/>
+          <path d="M132 213 Q140 223 148 213" fill="rgba(255,255,255,0.12)"/>
+
+          <!-- Neck -->
+          <path d="M130 195 Q128 210 130 218 Q135 222 140 222 Q145 222 150 218 Q152 210 150 195 Z"
+                fill="url(#skin)"/>
+
+          <!-- HEAD -->
+          <ellipse cx="140" cy="165" rx="50" ry="54" fill="url(#skin)"/>
+
+          <!-- HAIR — back/base mass -->
+          <ellipse cx="140" cy="142" rx="56" ry="50" fill="url(#hair)"/>
+          <!-- side hair left -->
+          <path d="M91 152 Q79 158 80 182 Q82 200 93 212 Q102 220 112 217 Q101 202 99 180 Q97 163 102 150 Z"
+                fill="url(#hair)"/>
+          <!-- side hair right -->
+          <path d="M189 152 Q201 158 200 182 Q198 200 187 212 Q178 220 168 217 Q179 202 181 180 Q183 163 178 150 Z"
+                fill="url(#hair)"/>
+
+          <!-- hair highlight/sheen on back mass -->
+          <ellipse cx="122" cy="126" rx="32" ry="22" fill="url(#hairHL)" opacity="0.7"/>
+          <ellipse cx="155" cy="138" rx="20" ry="14" fill="url(#hairHL2)" opacity="0.5"/>
+
+          <!-- PONYTAIL base bump -->
+          <ellipse cx="140" cy="100" rx="24" ry="16" fill="url(#hair)"/>
+
+          <!-- Ponytail tie / scrunchie -->
+          <ellipse cx="140" cy="91" rx="10" ry="6" fill="#7eb8d4"/>
+          <ellipse cx="140" cy="91" rx="7"  ry="4" fill="#6aaac8"/>
+
+          <!-- Ponytail strands arcing up -->
+          <path d="M133 90 Q118 66 124 42 Q128 20 122 4 Q118 -5 120 -10"
+                stroke="#1c1c1c" stroke-width="18" stroke-linecap="round" fill="none"/>
+          <path d="M147 90 Q162 68 156 44 Q152 22 158 6 Q162 -4 160 -10"
+                stroke="#232323" stroke-width="13" stroke-linecap="round" fill="none"/>
+          <!-- ponytail middle strand -->
+          <path d="M140 90 Q140 65 140 40 Q140 18 140 2"
+                stroke="#1a1a1a" stroke-width="10" stroke-linecap="round" fill="none"/>
+          <!-- sheen on ponytail -->
+          <path d="M133 88 Q120 64 126 40 Q130 18 124 3"
+                stroke="url(#hairHL)" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.55"/>
+          <path d="M140 88 Q140 63 140 38"
+                stroke="rgba(160,190,240,0.2)" stroke-width="4" stroke-linecap="round" fill="none"/>
+
+          <!-- EARS -->
+          <ellipse cx="90"  cy="169" rx="7.5" ry="9.5" fill="#f5b98a"/>
+          <ellipse cx="190" cy="169" rx="7.5" ry="9.5" fill="#f5b98a"/>
+          <ellipse cx="90"  cy="169" rx="4.5" ry="6"   fill="#e8a070" opacity="0.45"/>
+          <ellipse cx="190" cy="169" rx="4.5" ry="6"   fill="#e8a070" opacity="0.45"/>
+
+          <!-- EYEBROWS — natural ghibli style -->
+          <path d="M113 151 Q122 146 133 150" stroke="#241408" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+          <path d="M147 150 Q158 146 167 151" stroke="#241408" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+
+          <!-- EYES — large, expressive ghibli -->
+          <!-- eye whites -->
+          <ellipse cx="122" cy="163" rx="13" ry="14" fill="white"/>
+          <ellipse cx="158" cy="163" rx="13" ry="14" fill="white"/>
+
+          <!-- iris -->
+          <circle cx="122" cy="163.5" r="10.5" fill="url(#irisL)"/>
+          <circle cx="158" cy="163.5" r="10.5" fill="url(#irisR)"/>
+          <!-- inner iris ring -->
+          <circle cx="122" cy="163.5" r="7.5"  fill="#2d5888"/>
+          <circle cx="158" cy="163.5" r="7.5"  fill="#2d5888"/>
+          <!-- pupil -->
+          <circle cx="122" cy="164"   r="5"    fill="#0c1828"/>
+          <circle cx="158" cy="164"   r="5"    fill="#0c1828"/>
+          <!-- main catchlight (ghibli = large white oval) -->
+          <ellipse cx="117" cy="158.5" rx="3.5" ry="4" fill="white"/>
+          <ellipse cx="153" cy="158.5" rx="3.5" ry="4" fill="white"/>
+          <!-- small secondary catchlight -->
+          <circle cx="127" cy="168" r="1.5" fill="rgba(255,255,255,0.6)"/>
+          <circle cx="163" cy="168" r="1.5" fill="rgba(255,255,255,0.6)"/>
+          <!-- iris rim light -->
+          <circle cx="129" cy="157" r="2"   fill="rgba(160,200,240,0.35)"/>
+          <circle cx="165" cy="157" r="2"   fill="rgba(160,200,240,0.35)"/>
+
+          <!-- upper eyelid / lashes -->
+          <path d="M109 156 Q116 149 133 154" stroke="#141414" stroke-width="3" stroke-linecap="round" fill="none"/>
+          <path d="M145 154 Q162 149 171 156" stroke="#141414" stroke-width="3" stroke-linecap="round" fill="none"/>
+          <!-- lash tips -->
+          <line x1="109" y1="156" x2="105" y2="151" stroke="#141414" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="113" y1="153" x2="110" y2="148" stroke="#141414" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="145" y1="154" x2="142" y2="149" stroke="#141414" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="171" y1="156" x2="175" y2="151" stroke="#141414" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="167" y1="153" x2="170" y2="148" stroke="#141414" stroke-width="1.4" stroke-linecap="round"/>
+          <!-- lower lash line -->
+          <path d="M109 170 Q116 175 135 173" stroke="#242424" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.55"/>
+          <path d="M145 173 Q164 175 171 170" stroke="#242424" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.55"/>
+
+          <!-- GLASSES — thin gold wire, round lenses -->
+          <!-- left lens round -->
+          <circle cx="122" cy="164" r="16" stroke="#c9a96e" stroke-width="2" fill="rgba(126,184,212,0.04)"/>
+          <!-- right lens round -->
+          <circle cx="158" cy="164" r="16" stroke="#c9a96e" stroke-width="2" fill="rgba(126,184,212,0.04)"/>
+          <!-- bridge -->
+          <line x1="138" y1="162" x2="142" y2="162" stroke="#c9a96e" stroke-width="1.8" stroke-linecap="round"/>
+          <!-- arms -->
+          <line x1="106" y1="162" x2="94"  y2="165" stroke="#c9a96e" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="174" y1="162" x2="186" y2="165" stroke="#c9a96e" stroke-width="1.8" stroke-linecap="round"/>
+          <!-- tiny nose pads -->
+          <circle cx="138" cy="160" r="1.4" fill="#c9a96e" opacity="0.55"/>
+          <circle cx="142" cy="160" r="1.4" fill="#c9a96e" opacity="0.55"/>
+
+          <!-- NOSE (subtle) -->
+          <path d="M136 182 Q140 187 144 182" stroke="#d8946a" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+
+          <!-- MOUTH — gentle warm smile -->
+          <path d="M126 194 Q140 204 154 194" stroke="#be6858" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+          <!-- lip fill hint -->
+          <path d="M131 194 Q140 200 149 194 Q140 202 131 194Z" fill="rgba(210,100,88,0.12)"/>
+
+          <!-- CHEEK BLUSH (soft ghibli oval) -->
+          <ellipse cx="104" cy="184" rx="13" ry="8" fill="rgba(255,140,130,0.2)" filter="url(#softFace)"/>
+          <ellipse cx="176" cy="184" rx="13" ry="8" fill="rgba(255,140,130,0.2)" filter="url(#softFace)"/>
+
+          <!-- FRINGE / front hair over forehead -->
+          <!-- main fringe shape -->
+          <path d="M91 140
+                   Q94 114 110 108
+                   Q118 104 128 110
+                   Q132 104 140 102
+                   Q148 104 152 110
+                   Q162 104 170 108
+                   Q186 114 189 140"
+                fill="url(#hair)"/>
+          <!-- left fringe wing -->
+          <path d="M91 140 Q86 126 92 112 Q100 105 110 108" fill="#1a1a1a"/>
+          <!-- right fringe wing -->
+          <path d="M189 140 Q194 126 188 112 Q180 105 170 108" fill="#1a1a1a"/>
+          <!-- fringe sheen -->
+          <path d="M110 108 Q128 99 152 110" stroke="url(#hairHL)" stroke-width="7" stroke-linecap="round" fill="none" opacity="0.45"/>
+          <!-- loose strand -->
+          <path d="M128 110 Q123 126 120 138" stroke="#181818" stroke-width="3" stroke-linecap="round" fill="none"/>
+          <path d="M152 110 Q157 126 160 138" stroke="#181818" stroke-width="2" stroke-linecap="round" fill="none"/>
+
+          <!-- sakura petals floating -->
+          <g opacity="0.5">
+            <path d="M38 108 Q40 102 45 104 Q47 110 43 113 Q38 111 38 108Z" fill="#f0c0d8" transform="rotate(-18,42,110)"/>
+            <path d="M238 135 Q240 129 245 131 Q247 137 243 140 Q238 138 238 135Z" fill="#f4c8dc" transform="rotate(22,242,137)"/>
+            <path d="M52 200 Q54 194 59 196 Q61 202 57 205 Q52 203 52 200Z" fill="#f8d0e0" transform="rotate(35,56,202)" opacity="0.65"/>
+            <path d="M230 88 Q232 82 237 84 Q239 90 235 93 Q230 91 230 88Z" fill="#f0c0d8" transform="rotate(-28,234,90)" opacity="0.6"/>
+            <path d="M18 165 Q20 159 25 161 Q27 167 23 170 Q18 168 18 165Z" fill="#f4c8dc" transform="rotate(12,22,167)" opacity="0.45"/>
+          </g>
+
+          <!-- laptop glow at bottom -->
+          <rect x="108" y="245" width="64" height="10" rx="3" fill="rgba(126,184,212,0.12)"/>
+          <rect x="96"  y="254" width="88" height="4"  rx="2" fill="rgba(126,184,212,0.07)"/>
+
+          <!-- face ambient rim light -->
+          <ellipse cx="140" cy="163" rx="55" ry="60" fill="rgba(126,184,212,0.03)"/>
+        </svg>
+
+      </div>
+      <div class="status"></div>
+    </div>
+
+    <div class="left-text">
+      <div class="name-jp">India &nbsp;·&nbsp; Hyderabad</div>
+      <div class="name-main">Sahithi</div>
+      <div class="name-role">DevOps Engineer &nbsp;·&nbsp; Cloud Architect</div>
+
+      <div class="divider-fancy"><span>✦</span></div>
+
+      <div class="pills">
+        <span class="pill pill-blue">☁️ Cloud</span>
+        <span class="pill pill-gold">⚙️ DevOps</span>
+        <span class="pill pill-pink">🎌 Anime</span>
+        <span class="pill pill-blue">🐳 Containers</span>
+        <span class="pill pill-gold">📖 Bookworm</span>
+        <span class="pill pill-pink">🎬 Cinema</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+
+    <div class="bio-block">
+      <div class="section-label">About me</div>
+      <div class="bio-quote">
+        "Building systems that breathe — and stories that linger."
+      </div>
+      <p class="bio-body">
+        Hey there! I'm a <strong>DevOps Engineer</strong> at a global MNC, working with <strong>Azure</strong>-based cloud infrastructure,
+        designing CI/CD pipelines, and keeping distributed systems running at scale. I treat
+        clean systems the same way I treat a good story — every detail matters.<br><br>
+        Currently expanding my horizons by <em>exploring AWS</em> for upskilling — because a good engineer never stops learning.
+        When I'm not in the terminal, you'll find me curled up with a <em>novel</em>, completely lost
+        in an <em>anime arc</em>, or dissecting <em>manga panels</em> with the same intensity I give
+        production logs. Cinema is my second language, and <strong>cloud architecture</strong> is my first love.
+      </p>
+    </div>
+
+    <div class="grid-section">
+      <div class="section-label">What I'm about</div>
+      <div class="interest-grid">
+        <div class="interest-card">
+          <span class="ic-icon">☁️</span>
+          <div class="ic-title">Cloud & Infrastructure</div>
+          <div class="ic-sub">Azure · Nginx · PostgreSQL · Terraform</div>
+        </div>
+        <div class="interest-card">
+          <span class="ic-icon">⚙️</span>
+          <div class="ic-title">DevOps & Automation</div>
+          <div class="ic-sub">CI/CD · Docker · Kubernetes · Helm · GitOps</div>
+        </div>
+        <div class="interest-card">
+          <span class="ic-icon">🎌</span>
+          <div class="ic-title">Anime & Manga</div>
+          <div class="ic-sub">Studio Ghibli · Shōnen · Slice of Life · Comedy</div>
+        </div>
+        <div class="interest-card">
+          <span class="ic-icon">📖</span>
+          <div class="ic-title">Books & Cinema</div>
+          <div class="ic-sub">Literary fiction · Sci-fi · World cinema · Horror</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stack-section">
+      <div class="section-label">Tech stack</div>
+      <div class="stack-tags">
+        <span class="stag">Azure</span>
+        <span class="stag">Docker</span>
+        <span class="stag">Kubernetes</span>
+        <span class="stag">Nginx</span>
+        <span class="stag">PostgreSQL</span>
+        <span class="stag">Prometheus</span>
+        <span class="stag">Kibana</span>
+        <span class="stag">CI/CD</span>
+        <span class="stag">Terraform</span>
+        <span class="stag">Helm</span>
+        <span class="stag">GitHub Actions</span>
+        <span class="stag">Python</span>
+        <span class="stag">Bash</span>
+        <span class="stag">Linux</span>
+        <span class="stag exploring">☁ Exploring AWS</span>
+      </div>
+    </div>
+
+    <div class="right-footer">
+      Based in <span>India</span> &nbsp;·&nbsp; Scaling systems by day &nbsp;·&nbsp; Reading worlds by night
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// star field
+const canvas = document.getElementById('stars');
+const ctx = canvas.getContext('2d');
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resize(); window.addEventListener('resize', resize);
+const stars = Array.from({length:130}, () => ({
+  x:Math.random(), y:Math.random(),
+  r:Math.random()*1.2+0.3,
+  a:Math.random(),
+  speed:Math.random()*0.006+0.003,
+  phase:Math.random()*Math.PI*2
+}));
+function draw(ms) {
+  const t = ms/1000;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  stars.forEach(s => {
+    const a = s.a*(0.35+0.65*Math.sin(t*s.speed+s.phase));
+    ctx.beginPath();
+    ctx.arc(s.x*canvas.width, s.y*canvas.height, s.r, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(200,218,255,${a})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+
+// sakura petals
+const pc = document.getElementById('petals');
+const pColors = ['rgba(232,176,200,0.6)','rgba(255,200,215,0.5)','rgba(245,185,210,0.55)'];
+for (let i=0; i<20; i++) {
+  const p = document.createElement('div');
+  p.className = 'petal';
+  const sz = Math.random()*8+5;
+  p.style.cssText = `
+    left:${Math.random()*100}%;
+    width:${sz}px; height:${sz*0.65}px;
+    background:${pColors[Math.floor(Math.random()*pColors.length)]};
+    border-radius:50% 10% 50% 10%;
+    animation-duration:${Math.random()*18+14}s;
+    animation-delay:${Math.random()*14}s;
+  `;
+  pc.appendChild(p);
+}
+</script>
+</body>
+</html>
