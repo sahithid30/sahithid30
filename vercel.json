@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/sahithi_website/index.html" }
+  ]
+}
